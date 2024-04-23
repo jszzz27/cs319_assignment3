@@ -1,0 +1,140 @@
+var express = require("express");
+var cors = require("cors");
+var app = express();
+var fs = require("fs");
+var bodyParser = require("body-parser");
+app.use(cors());
+app.use(bodyParser.json());
+const port = "8081";
+const host = "localhost";
+app.use("/images", express.static("images"));
+
+app.listen(port, () => {
+    console.log("App listening at http://%s:%s", host, port);
+});
+
+const { MongoClient } = require("mongodb");
+const url = "mongodb://127.0.0.1:27017";
+const dbName ="reactdata"
+const client = new MongoClient(url);
+const db = client.db(dbName);
+
+app.get("/get", async (req, res) => {
+    console.log("App Get Called");
+    await client.connect();
+    console.log("Node connected successfully to GET MongoDB");
+    const query = {};
+    const results = await db
+        .collection("fakestore_catalog")
+        .find(query)
+        .limit(100)
+        .toArray();
+    // console.log(results);
+    res.status(200);
+    res.send(results);
+});
+
+app.get("/getById/:id", async (req, res) => {
+    const robotid = Number(req.params.id);
+    console.log("Robot to find :", robotid);
+    await client.connect();
+    console.log("Node connected successfully to GET-id MongoDB");
+    const query = {"id": robotid };
+    const results = await db.collection("fakestore_catalog")
+    .findOne(query);
+    console.log("Results :", results);
+    if (!results) res.send("Not Found").status(404);
+    else res.send(results).status(200);
+    });
+
+app.post("/addProduct", async (req, res) => {
+    console.log("Adding a product");
+    await client.connect();
+    const values = Object.values(req.body);
+    const id = parseInt(values[0]); //ID
+    const title = values[1]; //TITLE
+    const price = values[2];
+    const description = values[3];
+    const category = values[4];
+    const image = values[5]; //Maybe change this to reference the locally stored image
+    const rate = values[6]; //rate
+
+    const ratings = {
+        "rate" : rate
+    }
+
+    const productFormat = {
+        "id": id,
+        "title": title,
+        "price": price,
+        "description": description,
+        "category": category,
+        "image": image,
+        "rating": ratings
+    }
+
+    const results = await db.collection("fakestore_catalog").insertOne(productFormat);
+    res.status(200);
+    res.send(results);
+});
+
+
+
+app.put("/updateProduct", async (req, res) => {
+    const values = Object.values(req.body);
+    const productId = values[1];
+    const title = values[2];
+    const price = values[3];
+    const description = values[4];
+    const category = values[5];
+    const image = values[6];
+    const ratings = values[7];
+
+    // const productUpdate = {
+    //     "_id": generatedId,
+    //     "id": productId,
+    //     "title": title,
+    //     "price": price,
+    //     "description": description,
+    //     "category": category,
+    //     "image": image,
+    //     "rating": {
+    //         "rate" : ratings,  
+    //     }
+    // }
+    const results = await db.collection("fakestore_catalog").updateOne(
+        {"id" : productId},
+        {$set: {
+            "id": productId,
+            "title": title,
+            "price": price,
+            "description": description,
+            "category": category,
+            "image": image,
+            "rating": {
+                "rate" : ratings,  
+            }
+        }},
+        {upsert: false}
+    );
+
+    console.log(results);
+    res.status(200);
+    res.send(results);
+});
+
+
+app.delete("/deleteProduct/:id", async (req, res) => {
+    const id = parseInt(req.params.id);
+    console.log("ID: " + id);
+    const query = {
+        "id" : id
+    }
+    const deleteResults = await db.collection("fakestore_catalog").deleteOne(query);
+    console.log(deleteResults);
+    res.status(200);
+    res.send(deleteResults);
+    
+
+});
+    
