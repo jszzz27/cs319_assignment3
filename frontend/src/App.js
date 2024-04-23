@@ -1,4 +1,3 @@
-// import logo from './logo.svg';
 import './App.css';
 
 import { useState, useEffect } from "react";
@@ -25,7 +24,7 @@ function App() {
     price: 0.0,
     description: "",
     category: "",
-    image: "http://127.0.0.1:4000/images/",
+    image: "http://127.0.0.1:3000/images/",
     rating: { rate: 0.0, count: 0 },
   });
 
@@ -37,7 +36,7 @@ function App() {
   }, [checked4]);
 
   function getAllProducts() {
-    fetch("http://localhost:4000/")
+    fetch("http://localhost:3000/")
       .then((response) => response.json())
       .then((data) => {
         console.log("Show Catalog of Products :");
@@ -51,7 +50,7 @@ function App() {
     console.log(id);
 
     if (id >= 1) {
-      fetch("http://localhost:4000/" + id)
+      fetch("http://localhost:3000/" + id)
         .then((response) => response.json())
         .then((data) => {
           console.log("Show one product :", id);
@@ -102,7 +101,7 @@ function App() {
   function handleOnSubmit(e) {
     e.preventDefault();
     console.log(e.target.value);
-    fetch("http://localhost:4000/insert", {
+    fetch("http://localhost:3000/insert", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(addNewProduct),
@@ -159,7 +158,7 @@ function App() {
 
   function deleteOneProduct(deleteid) {
     console.log("Product to delete :", deleteid);
-    fetch("http://localhost:4000/delete/", {
+    fetch("http://localhost:3000/delete/", {
       method: "DELETE",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ _id: deleteid }),
@@ -181,7 +180,7 @@ function App() {
   function updateOneProduct(updateid, new_price) {
     console.log("Product to update :", updateid);
     console.log("Value to update :", new_price);
-    fetch("http://localhost:4000/update/", {
+    fetch("http://localhost:3000/update/", {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ _id: updateid, price: new_price }),
