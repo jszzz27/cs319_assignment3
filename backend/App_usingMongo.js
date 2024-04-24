@@ -1,140 +1,128 @@
+//Implement Mongo (or other database) Later
 var express = require("express");
 var cors = require("cors");
 var app = express();
 var fs = require("fs");
 var bodyParser = require("body-parser");
+const { MongoClient } = require("mongodb");
+
+// Mongo
+const url = "mongodb://127.0.0.1:27017";
+const dbName = "reactdata";
+const client = new MongoClient(url);
+const db = client.db(dbName);
+
 app.use(cors());
 app.use(bodyParser.json());
 const port = "8081";
 const host = "localhost";
-app.use("/images", express.static("images"));
-
 app.listen(port, () => {
-    console.log("App listening at http://%s:%s", host, port);
+  console.log("App listening at http://%s:%s", host, port);
 });
 
-const { MongoClient } = require("mongodb");
-const url = "mongodb://127.0.0.1:27017";
-const dbName ="reactdata"
-const client = new MongoClient(url);
-const db = client.db(dbName);
+//----------------------------------------------------
 
-app.get("/get", async (req, res) => {
-    console.log("App Get Called");
-    await client.connect();
-    console.log("Node connected successfully to GET MongoDB");
-    const query = {};
-    const results = await db
-        .collection("fakestore_catalog")
-        .find(query)
-        .limit(100)
-        .toArray();
-    // console.log(results);
-    res.status(200);
-    res.send(results);
+//GET
+app.get("/api/get", async (req, res) => {
+  await client.connect();
+  console.log("Node connected successfully to GET MongoDB");
+  const query = {};
+  const results = await db
+    .collection("fakestore_catalog")
+    .find(query)
+    .limit(100)
+    .toArray();
+  // console.log(results);
+  res.status(200);
+  res.send(results);
 });
 
-app.get("/getById/:id", async (req, res) => {
-    const robotid = Number(req.params.id);
-    console.log("Robot to find :", robotid);
-    await client.connect();
-    console.log("Node connected successfully to GET-id MongoDB");
-    const query = {"id": robotid };
-    const results = await db.collection("fakestore_catalog")
-    .findOne(query);
-    console.log("Results :", results);
-    if (!results) res.send("Not Found").status(404);
-    else res.send(results).status(200);
-    });
-
-app.post("/addProduct", async (req, res) => {
-    console.log("Adding a product");
-    await client.connect();
-    const values = Object.values(req.body);
-    const id = parseInt(values[0]); //ID
-    const title = values[1]; //TITLE
-    const price = values[2];
-    const description = values[3];
-    const category = values[4];
-    const image = values[5]; //Maybe change this to reference the locally stored image
-    const rate = values[6]; //rate
-
-    const ratings = {
-        "rate" : rate
+//POST
+app.post("/api/post", async (req, res) => {
+  await client.connect();
+  const keys = Object.keys(req.body);
+  const values = Object.values(req.body);
+  console.log(keys);
+  const id = values[0]; // id
+  const title = values[1]; // name
+  const price = values[2]; // price
+  const description = values[3]; // description
+  const category = values[4]; // category
+  const image = values[5]; // Image
+  const rate = values[6]; // Rating
+  const count = values[7];
+  const newDocument = {
+    id:id,
+    title:title,
+    price:price,
+    description:description,
+    category: category,
+    image:image,
+    rating: {
+      rate: rate,
+      count: count
     }
+  };
+  console.log("--------------------");
+  console.log(newDocument);
+  console.log("--------------------");
+  const results = await db.collection("fakestore_catalog").insertOne(newDocument);
+  res.status(200);
+  res.send(results);
+  });
+  
 
-    const productFormat = {
-        "id": id,
-        "title": title,
-        "price": price,
-        "description": description,
-        "category": category,
-        "image": image,
-        "rating": ratings
+//PUT
+app.put("/api/update", async (req, res) => {
+  await client.connect();
+  const keys = Object.keys(req.body);
+  const values = Object.values(req.body);
+  console.log(keys);
+  const id = Number(values[0]); // id
+  const title = values[1]; // name
+  const price = values[2]; // price
+  const description = values[3]; // description
+  const category = values[4]; // category
+  const image = values[5]; // Image
+  const rate = values[6]; // Rating
+  const count = values[7];
+  const newDocument = {
+    id:id,
+    title:title,
+    price:price,
+    description:description,
+    category: category,
+    image:image,
+    rating: {
+      rate: rate,
+      count: count
     }
-
-    const results = await db.collection("fakestore_catalog").insertOne(productFormat);
-    res.status(200);
-    res.send(results);
+  };
+  console.log("--------------------");
+  console.log(newDocument);
+  console.log("--------------------");
+  const results = await db.collection("fakestore_catalog")
+  .replaceOne({id: Number(values[0])},newDocument);
+  res.status(200);
+  res.send(results);
 });
 
-
-
-app.put("/updateProduct", async (req, res) => {
-    const values = Object.values(req.body);
-    const productId = values[1];
-    const title = values[2];
-    const price = values[3];
-    const description = values[4];
-    const category = values[5];
-    const image = values[6];
-    const ratings = values[7];
-
-    // const productUpdate = {
-    //     "_id": generatedId,
-    //     "id": productId,
-    //     "title": title,
-    //     "price": price,
-    //     "description": description,
-    //     "category": category,
-    //     "image": image,
-    //     "rating": {
-    //         "rate" : ratings,  
-    //     }
-    // }
-    const results = await db.collection("fakestore_catalog").updateOne(
-        {"id" : productId},
-        {$set: {
-            "id": productId,
-            "title": title,
-            "price": price,
-            "description": description,
-            "category": category,
-            "image": image,
-            "rating": {
-                "rate" : ratings,  
-            }
-        }},
-        {upsert: false}
-    );
-
-    console.log(results);
-    res.status(200);
-    res.send(results);
+// DELETE
+app.delete("/api/delete", async (req, res) => {
+  await client.connect();
+  console.log("Delete Started");
+  const values = Object.values(req.body);
+  const id = values[0];
+  const query = {id: Number(id)};
+  console.log(query);
+  const result = await db.collection("fakestore_catalog").deleteOne(query);
+  res.send(result);
+  // res.send(results);
+  // db.query("DELETE FROM fakestore_catalog WHERE id= ?", id, (err, result) => {
+  //   if (err) {
+  //     console.log(err);
+  //   } else {
+  //     res.send(result);
+  //   }
+  // });
 });
-
-
-app.delete("/deleteProduct/:id", async (req, res) => {
-    const id = parseInt(req.params.id);
-    console.log("ID: " + id);
-    const query = {
-        "id" : id
-    }
-    const deleteResults = await db.collection("fakestore_catalog").deleteOne(query);
-    console.log(deleteResults);
-    res.status(200);
-    res.send(deleteResults);
-    
-
-});
-    
