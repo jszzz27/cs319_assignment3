@@ -46,7 +46,7 @@ function App() {
         ,
         category: ""
         ,
-        image: url + "images/diglett.png",
+        image: url + "images/",
         rating: 0.0
     }
 
