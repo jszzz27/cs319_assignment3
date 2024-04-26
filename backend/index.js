@@ -60,9 +60,8 @@ app.post("/insert", async (req, res) => {
         rating: { rate: prate, count: pcount },
     });
     try {
-        // await formData.save();
         await Product.create(formData);
-        const messageResponse = { message: `Product ${p_id} added correctly` };
+        const messageResponse = { message: `Product ${p_id} Added!` };
         res.send(JSON.stringify(messageResponse));
     } catch (err) {
         console.log("Error while adding a new product:" + err);
@@ -75,7 +74,7 @@ app.delete("/delete", async (req, res) => {
         const query = { _id: req.body._id };
         await Product.deleteOne(query);
         const messageResponse = {
-            message: `Product ${req.body._id} deleted correctly`,
+            message: `Product ${req.body._id} Deleted!`,
         };
         res.send(JSON.stringify(messageResponse));
     } catch (err) {
@@ -92,7 +91,7 @@ app.put("/update", async (req, res) => {
         const updateDoc = { $set: { price: `${req.body.price}`} };
         await Product.updateOne(filter, updateDoc, null);
         const messageResponse = {
-            message: `Product ${req.body_id} updated correctly`
+            message: `Product ${req.body_id} Updated!`
         };
     } catch (err) {
         console.log("Error while updating :" + p_id + " " + err);
