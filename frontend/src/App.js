@@ -283,6 +283,12 @@ function App() {
               </div>
             </div>
             <div className="row mb-3">
+              <label className="col-sm-2 col-form-label col-form-label-lg">Description</label>
+              <div className="col-sm-10">
+                <input type="text" className="form-control form-control-lg" name="description" value={addNewProduct.description} onChange={handleChange} />
+              </div>
+            </div>
+            <div className="row mb-3">
               <label className="col-sm-2 col-form-label col-form-label-lg">Image URL</label>
               <div className="col-sm-10">
                 <input type="text" className="form-control form-control-lg" name="image" value={addNewProduct.image} onChange={handleChange} />
